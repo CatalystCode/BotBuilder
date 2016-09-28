@@ -34,6 +34,7 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -59,8 +60,9 @@ namespace Microsoft.Bot.Builder.Luis
         /// Query the LUIS service using this uri.
         /// </summary>
         /// <param name="uri">The query uri.</param>
+        /// <param name="token">The cancellation token.</param>
         /// <returns>The LUIS result.</returns>
-        Task<LuisResult> QueryAsync(Uri uri);
+        Task<LuisResult> QueryAsync(Uri uri, CancellationToken token);
     }
 
     /// <summary>
@@ -69,13 +71,13 @@ namespace Microsoft.Bot.Builder.Luis
     [Serializable]
     public sealed class LuisService : ILuisService
     {
-        private readonly LuisModelAttribute model;
+        private readonly ILuisModel model;
 
         /// <summary>
         /// Construct the LUIS service using the model information.
         /// </summary>
         /// <param name="model">The LUIS model information.</param>
-        public LuisService(LuisModelAttribute model)
+        public LuisService(ILuisModel model)
         {
             SetField.NotNull(out this.model, nameof(model), model);
         }
@@ -96,12 +98,13 @@ namespace Microsoft.Bot.Builder.Luis
             return builder.Uri;
         }
 
-        async Task<LuisResult> ILuisService.QueryAsync(Uri uri)
+        async Task<LuisResult> ILuisService.QueryAsync(Uri uri, CancellationToken token)
         {
             string json;
-            using (HttpClient client = new HttpClient())
+            using (var client = new HttpClient())
+            using (var response = await client.GetAsync(uri, HttpCompletionOption.ResponseContentRead, token))
             {
-                json = await client.GetStringAsync(uri);
+                json = await response.Content.ReadAsStringAsync();
             }
 
             try
@@ -126,11 +129,12 @@ namespace Microsoft.Bot.Builder.Luis
         /// </summary>
         /// <param name="service">LUIS service.</param>
         /// <param name="text">The query text.</param>
+        /// <param name="token">The cancellation token.</param>
         /// <returns>The LUIS result.</returns>
-        public static async Task<LuisResult> QueryAsync(this ILuisService service, string text)
+        public static async Task<LuisResult> QueryAsync(this ILuisService service, string text, CancellationToken token)
         {
             var uri = service.BuildUri(text);
-            return await service.QueryAsync(uri);
+            return await service.QueryAsync(uri, token);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.Bot.Connector
         /// </summary>
         /// <param name="property">property name to change</param>
         /// <returns>property requested or default for type</returns>
-        public TypeT GetProperty<TypeT>( string property)
+        public TypeT GetProperty<TypeT>(string property)
         {
             if (this.Data == null)
                 this.Data = new JObject();
@@ -31,13 +31,28 @@ namespace Microsoft.Bot.Connector
         /// </summary>
         /// <param name="property">property name to change</param>
         /// <param name="data">new data</param>
-        public void SetProperty<TypeT>( string property, TypeT data)
+        public void SetProperty<TypeT>(string property, TypeT data)
         {
             if (this.Data == null)
                 this.Data = new JObject();
 
             // convert (object or array) to JToken (JObject/JArray)
-            ((JObject)this.Data)[property] = JToken.FromObject(data);
+            if (data == null)
+                ((JObject)this.Data)[property] = null;
+            else
+                ((JObject)this.Data)[property] = JToken.FromObject(data);
+        }
+
+        /// <summary>
+        /// Remove a property from the BotData record
+        /// </summary>
+        /// <param name="property">property name to remove</param>
+        public void RemoveProperty(string property)
+        {
+            if (this.Data == null)
+                this.Data = new JObject();
+
+            ((JObject)this.Data).Remove(property);
         }
     }
 }

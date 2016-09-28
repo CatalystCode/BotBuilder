@@ -388,8 +388,8 @@ namespace Microsoft.Bot.Builder.Tests
                             },
                 "hi",
                 "1", // onions for topping clarification
-                "2", 
-                "med", 
+                "2",
+                "med",
                 // Kind "4",
                 "drink bread",
                 "thin",
@@ -510,9 +510,41 @@ namespace Microsoft.Bot.Builder.Tests
                 "abc",
                 "1 state st",
                 "",
-                "",
+                "9/9/2016 1pm",
+                "status",
                 "y",
                 "2.5"
+                );
+        }
+
+        public class MyClass
+        {
+            [Prompt("I didn't get you")]
+            public string xxx { get; set; }
+
+            [Optional]
+            public string yyy { get; set; }
+
+            public static IForm<MyClass> Build()
+            {
+                return new FormBuilder<MyClass>()
+                    .Message("Welcome")
+                    .Field(nameof(xxx))
+                    .Field(nameof(yyy), validate: async (state, value) =>
+                        new ValidateResult() { IsValid = true} )
+                    .Build()
+                    ;
+            }
+        }
+
+        [TestMethod]
+        public async Task Optional()
+        {
+            await VerifyFormScript(@"..\..\Optional.script",
+                "en-us", () => MyClass.Build(), FormOptions.None, new MyClass(), Array.Empty<EntityRecommendation>(),
+                "ok",
+                "This is something",
+                ""
                 );
         }
 
@@ -520,7 +552,7 @@ namespace Microsoft.Bot.Builder.Tests
         public async Task FormFlow_Localization()
         {
             // This ensures there are no bad templates in resources
-            foreach (var locale in new string[] { "ar", "en", "es", "fa", "fr", "it", "ja", "ru", "zh-Hans" })
+            foreach (var locale in new string[] { "ar", "en", "es", "fa", "fr", "it", "ja", "ru", "zh-Hans", "cs", "de-DE" })
             {
                 var root = new FormDialog<PizzaOrder>(new PizzaOrder(), () => PizzaOrder.BuildForm(), cultureInfo: CultureInfo.GetCultureInfo(locale));
                 Assert.AreNotEqual(null, root);

@@ -71,7 +71,6 @@ export class Session extends events.EventEmitter implements ISession {
     private sendingBatch = false;
     private inMiddleware = false;
     private _locale:string = null;
-    public localizer:ILocalizer = null;
 
     constructor(protected options: ISessionOptions) {
         super();
@@ -138,6 +137,7 @@ export class Session extends events.EventEmitter implements ISession {
     public conversationData: any;
     public privateConversationData: any;
     public dialogData: any;
+    public localizer:ILocalizer = null;
 
     public error(err: Error): ISession {
         err = err instanceof Error ? err : new Error(err.toString());
@@ -150,19 +150,22 @@ export class Session extends events.EventEmitter implements ISession {
     public preferredLocale(locale?: string, callback?: ErrorCallback): string {
         if (locale) {
             this._locale = locale;
+            if (this.userData) {
+                this.userData[consts.Data.PreferredLocale] = locale;
+            }
             if (this.localizer) {
                 this.localizer.load(locale, callback);
             }
-        } else {
-            if (!this._locale) {
-                if (this.message && this.message.textLocale) {
-                    this._locale = this.message.textLocale;
-                } else if (this.localizer) {
-                    this._locale = this.localizer.defaultLocale();
-                }
+        } else if (!this._locale) {
+            if (this.userData && this.userData[consts.Data.PreferredLocale]) {
+                this._locale = this.userData[consts.Data.PreferredLocale];
+            } else if (this.message && this.message.textLocale) {
+                this._locale = this.message.textLocale;
+            } else if (this.localizer) {
+                this._locale = this.localizer.defaultLocale();
             }
-            return this._locale;
         }        
+        return this._locale;
     }
 
     public gettext(messageid: string, ...args: any[]): string {
