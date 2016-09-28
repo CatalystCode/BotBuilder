@@ -1899,6 +1899,32 @@ export class SimplePromptRecognizer implements IPromptRecognizer {
     recognize(args: IPromptRecognizerArgs, callback: (result: IPromptResult<any>) => void): void;
 }
 
+export interface IStepResolver {
+    /**  
+     * Gets the next function step to execute.
+     * @param session Session object for the current conversation.
+     * @param args Arguments passed to the dialog in the `session.beginDialog()` call.
+     */
+    getNext(session: Session, args: any);
+}
+
+/** Exports the ability to resolve steps. */
+export class StepResolver implements IStepResolver {
+    /**  
+     * Constructs a new instance of an StepResolver.
+     * @param session Session object for the current conversation.
+     * @param args Arguments passed to the dialog in the `session.beginDialog()` call.
+     */
+    constructor(next: (session: Session, args) => void);
+
+    /**  
+     * Gets the next function step to execute.
+     * @param session Session object for the current conversation.
+     * @param args Arguments passed to the dialog in the `session.beginDialog()` call.
+     */
+    getNext(session: Session, args: any);
+}
+
 /** Identifies a users intent and optionally extracts entities from a users utterance. */
 export class IntentDialog extends Dialog {
     /**  

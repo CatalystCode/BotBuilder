@@ -34,6 +34,7 @@
 import ses = require('../Session');
 import dlg = require('./Dialog');
 import actions = require('./DialogAction');
+import resolver = require('./StepResolver');
 import consts = require('../consts');
 import logger = require('../logger');
 import async = require('async');
@@ -213,6 +214,8 @@ export class IntentDialog extends dlg.Dialog {
             this.handlers[id] = actions.waterfall(dialogId);
         } else if (typeof dialogId === 'string') {
             this.handlers[id] = actions.DialogAction.beginDialog(<string>dialogId, dialogArgs);
+        } else if (dialogId instanceof resolver.StepResolver) {
+            this.handlers[id] = resolver.walker(dialogId);
         } else {
             this.handlers[id] = actions.waterfall([<actions.IDialogWaterfallStep>dialogId]);
         }
